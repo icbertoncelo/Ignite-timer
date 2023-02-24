@@ -1,11 +1,13 @@
-import { createContext, ReactNode, useState } from 'react'
+import { createContext, ReactNode, useReducer, useState } from 'react'
+import { addNewCycle, interruptCurrentCycle } from '../reducers/cycles/actions'
+import { cyclesReducer } from '../reducers/cycles/reducer'
 
 interface CreateNewCycleFormData {
   task: string
   minutesAmount: number
 }
 
-interface Cycle {
+export interface Cycle {
   id: string
   task: string
   minutesAmount: number
@@ -34,57 +36,37 @@ interface CyclesContextProviderProps {
 export function CyclesContextProvider({
   children,
 }: CyclesContextProviderProps) {
-  const [cycles, setCycles] = useState<Cycle[]>([])
-  const [activeCycleId, setActiveCycleId] = useState('')
+  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
+    cycles: [],
+    activeCycleId: null,
+  })
+
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
+  const { cycles, activeCycleId } = cyclesState
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   function onCreateNewCycle({ task, minutesAmount }: CreateNewCycleFormData) {
     const id = String(new Date().getTime())
 
-    const cycle: Cycle = {
+    const newCycle: Cycle = {
       id,
       task,
       minutesAmount,
       startDate: new Date(),
     }
 
-    setCycles((prevState) => [...prevState, cycle])
-    setActiveCycleId(id)
+    dispatch(addNewCycle(newCycle))
+
     setAmountSecondsPassed(0)
   }
 
   function onInterruptCycle() {
-    setActiveCycleId('')
-
-    setCycles((prevState) =>
-      prevState.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return {
-            ...cycle,
-            interruptedDate: new Date(),
-          }
-        }
-
-        return cycle
-      }),
-    )
+    dispatch(interruptCurrentCycle())
   }
 
   function markCurrentCycleAsFinished() {
-    setCycles((prevState) =>
-      prevState.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return {
-            ...cycle,
-            finishedDate: new Date(),
-          }
-        }
-
-        return cycle
-      }),
-    )
+    dispatch(markCurrentCycleAsFinished())
   }
 
   function onChangeSecondsPassed(secondes: number) {
