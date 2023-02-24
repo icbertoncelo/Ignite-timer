@@ -30,7 +30,7 @@ export function Countdown() {
       interval = setInterval(() => {
         const differenceInSecondsBetweenNowAndStartDate = differenceInSeconds(
           new Date(),
-          activeCycle.startDate,
+          new Date(activeCycle.startDate),
         )
 
         if (differenceInSecondsBetweenNowAndStartDate >= cycleTotalSeconds) {
@@ -53,12 +53,6 @@ export function Countdown() {
     markCurrentCycleAsFinished,
     onChangeSecondsPassed,
   ])
-
-  useEffect(() => {
-    if (activeCycle) {
-      document.title = `${cycleMinutesString}:${cycleSecondsString}`
-    }
-  }, [activeCycle, cycleMinutesString, cycleSecondsString])
 
   return (
     <CountdownContainer>
